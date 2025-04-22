@@ -231,8 +231,8 @@ ui <- fluidPage(
   ),
   
   div(class = "title-box",
-    titlePanel("Diabetes in Young Adults - India"),
-    p("Interactive dashboard for analysis of diabetes risk factors, prevalence, and health metrics among young adults in India")
+      titlePanel("Diabetes in Young Adults - India"),
+      p("Interactive dashboard for analysis of diabetes risk factors, prevalence, and health metrics among young adults in India")
   ),
   
   sidebarLayout(
@@ -262,15 +262,16 @@ ui <- fluidPage(
       
       div(class = "sidebar-section",
         h4("About This Dashboard", class = "section-title"),
-        p("This dashboard visualizes diabetes trends among young adults in India, providing insights on:"),
+        p("This dashboard explores diabetes trends among young adults in India through:"),
         tags$ul(
-          tags$li("Risk factors and prevalence"),
-          tags$li("BMI and age correlations"),
-          tags$li("Lifestyle impact analysis"),
-          tags$li("Personalized risk assessment")
+          tags$li("Prevalence by type and region"),
+          tags$li("Health metrics and correlations"),
+          tags$li("Lifestyle impact and recommendations"),
+          tags$li("Interactive tools for risk estimation and health planning")
         ),
-        p("Data is based on a comprehensive study of young adults across India.")
-      ),
+        p("Based on a study of young adults in India to support informed health choices and diabetes care.")
+    ),
+
       
       div(class = "stats-box",
         uiOutput("totalCasesBox")
