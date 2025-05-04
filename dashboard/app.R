@@ -13,19 +13,16 @@ library(shinydashboard)
 # Load data
 data <- read.csv("data/diabetes_young_adults_india.csv")
 
-# Print column names to check available variables
+# Print column names 
 print("Column names:")
 print(colnames(data))
 print("First few rows:")
 print(head(data))
 
-# Check if Blood_Glucose column exists, if not, don't use it in visualizations
-has_blood_glucose <- "Blood_Glucose" %in% colnames(data)
-
-# Define color palette
+# color palette
 diabetes_colors <- c("#3498db", "#e74c3c", "#2ecc71", "#f39c12", "#9b59b6")
 
-# Define the risk calculation function with gender-specific BMI
+# Define the risk calculation function 
 calculate_diabetes_risk <- function(age, bmi, family_history, physical_activity, smoking, gender) {
   # Base risk score
   risk_score <- 0
@@ -39,7 +36,7 @@ calculate_diabetes_risk <- function(age, bmi, family_history, physical_activity,
     3
   }
   
-  # BMI factor (higher risk with higher BMI) - gender specific
+  # BMI factor (higher risk with higher BMI) 
 if(gender == "Male") {
   bmi_factor <- if(bmi < 18.5) {
     1  # Underweight
@@ -54,7 +51,7 @@ if(gender == "Male") {
   } else {
     6  # Obesity Class III
   }
-} else { # Female - using same BMI categories for scientific accuracy
+} else { # Female 
   bmi_factor <- if(bmi < 18.5) {
     1  # Underweight
   } else if(bmi >= 18.5 && bmi < 25) {
@@ -70,10 +67,10 @@ if(gender == "Male") {
   }
 }
   
-  # Family history is a major factor
+  # Family history (major factor)
   family_factor <- if(family_history) 3 else 0
   
-  # Physical activity is protective - refined scale
+  # Physical activity 
   activity_factor <- switch(physical_activity,
                          "Sedentary" = 3,
                          "low" = 2,
@@ -97,8 +94,8 @@ if(gender == "Male") {
     "Very High Risk"
   }
   
-  # Risk percentage (approximate)
-  max_score <- 14 # Maximum possible score
+  # Risk percentage
+  max_score <- 14 # Max score
   risk_percentage <- round((risk_score / max_score) * 100)
   
   # Return both category and percentage
@@ -108,6 +105,7 @@ if(gender == "Male") {
     score = risk_score
   ))
 }
+
 
 ui <- fluidPage(
   theme = shinythemes::shinytheme("flatly"),
@@ -231,7 +229,7 @@ ui <- fluidPage(
   ),
   
   div(class = "title-box",
-      titlePanel("Diabetes in Young Adults - India"),
+      titlePanel("Vital-Insight"),
       p("Interactive dashboard for analysis of diabetes risk factors, prevalence, and health metrics among young adults in India")
   ),
   
@@ -489,7 +487,7 @@ ui <- fluidPage(
                 div(class = "box-container", style = "margin-top: 0;",
                   h4("Build Your Meal", class = "section-title"),
                   selectizeInput("food_item", "Select Indian Dish:",
-                              choices = NULL, # Will be populated from server
+                              choices = NULL, 
                               options = list(`create-item` = TRUE, 
                                             placeholder = "Search or enter custom dish")),
                   numericInput("serving_size", "Serving Size (grams):",
@@ -503,7 +501,7 @@ ui <- fluidPage(
                   hr(),
                   h4("Current Meal Composition", class = "section-title"),
                   
-                  # Set a fixed height for the table with scrolling
+                  
                   div(style = "max-height: 350px; overflow-y: auto; margin-bottom: 20px;",
                     DTOutput("meal_table")
                   )
@@ -619,7 +617,7 @@ server <- function(input, output, session) {
 })
 
 
-# 2. Regional breakdown - showing diabetes prevalence by region
+# 2. Regional breakdown 
 output$regionBarChart <- renderPlotly({
   region_data <- filtered_data() %>%
     group_by(Region, Diabetes_Type) %>%
@@ -665,7 +663,7 @@ output$regionBarChart <- renderPlotly({
 
 
 
-# 3. Summary table with more relevant metrics
+# 3. Summary table 
 output$summaryTable <- renderDT({
   summary_data <- filtered_data() %>%
     group_by(Diabetes_Type) %>%
@@ -694,7 +692,7 @@ output$summaryTable <- renderDT({
 
   
   # Health Metrics tab plots
-  # 1. BMI distribution visualization with violin plot
+  # 1. BMI distribution - violin plot
 output$bmiViolinPlot <- renderPlotly({
     plot_ly(filtered_data(), 
           x = ~Diabetes_Type, 
@@ -869,7 +867,7 @@ output$ageGroupMetrics <- renderPlotly({
       .groups = 'drop'
     )
   
-  # Nice modern color palette
+  # color palette
   diabetes_colors <- RColorBrewer::brewer.pal(n = length(unique(age_data$Diabetes_Type)), name = "Set2")
 
   # Scatter Plot
@@ -940,7 +938,7 @@ output$ageGroupMetrics <- renderPlotly({
     )
 })
   
-  # Lifestyle tab plots - improved with more accurate data
+  # Lifestyle tab plots 
   # Physical Activity Impact on Diabetes
   output$activityPlot <- renderPlotly({
   activity_data <- filtered_data() %>%
@@ -948,10 +946,10 @@ output$ageGroupMetrics <- renderPlotly({
     summarise(Count = n(), 
               Avg_HbA1c = mean(HbA1c, na.rm = TRUE),
               .groups = 'drop') %>%
-    # focus only on actual diabetes cases- removed none
+    # none not required 
     filter(Diabetes_Type != "None")
   
-  # Order the activity levels properly
+  
   activity_data$Physical_Activity_Level <- factor(activity_data$Physical_Activity_Level, 
                                                 levels = c("Sedentary", "Moderate", "Active"))
   
@@ -1071,7 +1069,7 @@ output$ageGroupMetrics <- renderPlotly({
             yaxis = list(title = "Stress Level"))
   })
     
-  # Risk Calculator outputs - with gender-specific BMI assessment
+  # Risk Calculator outputs 
   risk_results <- eventReactive(input$calculate, {
     calculate_diabetes_risk(
       age = input$calc_age,
@@ -1132,8 +1130,7 @@ output$ageGroupMetrics <- renderPlotly({
     }
     risk_factors <- c(risk_factors, age_text)
     
-    # BMI factor - gender specific
-    
+    # BMI factor     
 if(input$calc_gender == "Male" || input$calc_gender == "Female") {
   bmi_text <- if(input$calc_bmi < 18.5) {
     "Your BMI indicates you are underweight, which may have health implications but is generally associated with lower diabetes risk."
@@ -1169,7 +1166,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       risk_factors <- c(risk_factors, "Smoking increases the risk of type 2 diabetes by approximately 30-40% according to research, by causing inflammation and oxidative stress.")
     }
     
-    # Generate HTML list with better styling
+    # HTML list 
     tags$ul(
       lapply(risk_factors, function(factor) {
         tags$li(factor, style = "margin-bottom: 10px;")
@@ -1187,7 +1184,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       "Stay hydrated by drinking water regularly throughout the day and limit sugary beverages"
     )
     
-    # BMI-specific recommendations - gender specific
+    # BMI-specific recommendations 
     if(input$calc_gender == "Male") {
       if(input$calc_bmi >= 22) {
         recs <- c(recs, paste0("Consider working with a healthcare provider on a weight management plan to achieve a BMI below 22, which is optimal for Asian males"))
@@ -1226,7 +1223,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
                "Monitor for early symptoms of diabetes including increased thirst, frequent urination, and unexplained fatigue")
     }
     
-    # Generate HTML list with better styling
+    # HTML list 
     tags$div(
       class = "recommendations-box",
       tags$ul(
@@ -1263,7 +1260,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
 
   # Generate exercise plan based on user inputs
   exercise_plan <- eventReactive(input$generate_plan, {
-    # Calculate more accurate calorie burn estimates based on MET values
+    # calorie burn estimates based on MET values
     # MET = Metabolic Equivalent of Task
     get_met_value <- function(fitness_level, exercise_type) {
       met_values <- list(
@@ -1295,7 +1292,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       return(met * weight_kg * (duration_min/60))
     }
     
-    # Improved exercise database with better progression, proper sets/reps, and timing
+    # exercise database
     exercise_database <- list(
       "Weight Management" = list(
         "Beginner" = list(
@@ -1586,8 +1583,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
     # Select required number of days
     selected_days <- days_of_week[1:input$days_per_week]
     
-    # Create intelligent exercise distribution
-    # For balanced training, distribute exercise types based on goal
+    # exercise distribution based on goal
     exercise_distribution <- list()
     
     if(input$exercise_goal == "Weight Management") {
@@ -1650,7 +1646,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       }
     }
     
-    # Create exercise types array based on distribution
+    # exercise types array based on distribution
     exercise_types <- c(
       rep("Cardio", days_count[["Cardio"]]),
       rep("Strength", days_count[["Strength"]]),
@@ -1664,12 +1660,12 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       exercise_types <- c(exercise_types, additional_types)
     }
     
-    # Shuffle exercise types for better distribution through the week
+    # Shuffle exercise types 
     if(input$days_per_week > 1) {
       exercise_types <- sample(exercise_types, input$days_per_week)
     }
     
-    # Create exercise schedule
+    # exercise schedule
     exercise_schedule <- data.frame(
       Day = selected_days,
       Exercise_Type = exercise_types,
@@ -1721,17 +1717,16 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
     # Calculate weekly calorie burn
     weekly_cal_burn <- sum(exercise_schedule$Calories_Burned)
     
-    # Calculate scientific benefits after 3 months based on research
+    # Calculate scientific benefits after 3 months
     # Blood sugar reduction based on exercise frequency and intensity
     blood_sugar_improvement <- 0
     if(input$exercise_goal == "Blood Sugar Control") {
-      # Based on research showing 10-20% improvement in blood glucose control with regular exercise
       blood_sugar_improvement <- 8 + (input$days_per_week * 1.5) + (as.numeric(factor(input$fitness_level, levels = c("Beginner", "Intermediate", "Advanced"))) * 2)
     } else {
       blood_sugar_improvement <- 5 + (input$days_per_week * 1.2) + (as.numeric(factor(input$fitness_level, levels = c("Beginner", "Intermediate", "Advanced"))) * 1.5)
     }
     
-    # Cardiovascular improvement (VO2 max increase %)
+    # Cardiovascular improvement 
     cardio_improvement <- 0
     if(input$exercise_goal == "Cardiovascular Fitness") {
       cardio_improvement <- 8 + (input$days_per_week * 2) + (as.numeric(factor(input$fitness_level, levels = c("Beginner", "Intermediate", "Advanced"))) * 1)
@@ -1739,7 +1734,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       cardio_improvement <- 5 + (input$days_per_week * 1.5) + (as.numeric(factor(input$fitness_level, levels = c("Beginner", "Intermediate", "Advanced"))) * 0.5)
     }
     
-    # Weight management (more conservative and scientifically based)
+    # Weight management 
     weight_change <- 0
     if(input$exercise_goal == "Weight Management") {
       # Base on 3500 kcal deficit = 1 lb weight loss (0.45 kg)
@@ -1773,7 +1768,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       "Additional" = health_benefits
     )
     
-    # Create weekly summary for different exercise types
+    # weekly summary for different exercise types
     weekly_summary <- list(
       "Cardio" = paste0(days_count[["Cardio"]], " days, ", 
                       days_count[["Cardio"]] * input$minutes_per_session, " total minutes"),
@@ -1839,7 +1834,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
     )
   })
 
-  # Output for exercise schedule table (continued)
+  # Output for exercise schedule table 
   output$exercise_schedule <- renderTable({
     exercise_plan()$schedule %>%
       select(Day, Exercise_Type, Specific_Exercise, Exercise_Details, Duration, Calories_Burned) %>%
@@ -1869,7 +1864,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
       )
     )
 
-    # Create horizontal bar chart with improved styling
+    # horizontal bar chart 
     plot_ly(
       benefits_data,
       x = ~Value,
@@ -2029,29 +2024,29 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
   # Load Indian food nutrition dataset
   food_database <- reactive({
     df <- read.csv("data/Indian_Food_Nutrition_Processed.csv")
-    # Print original column names for debugging
+    # original column names 
     print("Original column names:")
     print(names(df))
     
-    # Clean the column names properly
+    # Clean the column names 
     clean_names <- tolower(gsub("\\.", "_", gsub(" ", "_", names(df))))
     names(df) <- clean_names
     
-    # Print cleaned column names for debugging
+    # Print cleaned column names 
     print("Cleaned column names:")
     print(names(df))
     
     return(df)  
     })
    
-  # Add this after your food_database reactive
+
   observe({
     req(food_database())
     print("First few rows of food database:")
     print(head(food_database()))
   })
   
-  # Initialize meal data with the correct columns
+  # Initialize meal data 
   meal_data <- reactiveVal(data.frame(
     dish_name = character(),
     serving_size = numeric(),
@@ -2084,7 +2079,7 @@ if(input$calc_gender == "Male" || input$calc_gender == "Female") {
 observeEvent(input$add_food, {
   req(input$food_item, input$serving_size)
   
-  # Debug selected food
+  # selected food
   print(paste("Selected food:", input$food_item))
   print(paste("Serving size:", input$serving_size))
   
@@ -2096,7 +2091,7 @@ observeEvent(input$add_food, {
     # Get food info from database
     food_info <- food_database()[food_database()$dish_name == input$food_item, ]
     
-    # Debug food_info
+    # food_info
     print(paste("Number of rows in food_info:", nrow(food_info)))
     print("Column names in food_info:")
     print(names(food_info))
@@ -2106,7 +2101,7 @@ observeEvent(input$add_food, {
       # Scale nutrients based on serving size
       serving_ratio <- input$serving_size / 100
       
-      # Print values for debugging
+      # Print values
       print("Values for new food item:")
       print(paste("Calories:", food_info$calories_kcal))
       print(paste("Carbs:", food_info$carbohydrates_g))
@@ -2131,9 +2126,8 @@ observeEvent(input$add_food, {
       # Add to meal data
       meal_data(rbind(meal_data(), new_food))
     } else {
-      # If we found the food in the database but got zero rows
       print("ERROR: Food found in database but returned zero rows")
-      # Fall back to default values
+      # default values
       new_food <- data.frame(
         dish_name = input$food_item,
         serving_size = input$serving_size,
@@ -2215,7 +2209,7 @@ observeEvent(input$add_food, {
                 pageLength = 5,
                 dom = 't',
                 ordering = TRUE,
-                scrollX = TRUE,  # Enable horizontal scrolling if needed
+                scrollX = TRUE,  
                 scrollY = "280px", 
                 scroller = TRUE 
               ),
@@ -2226,7 +2220,7 @@ observeEvent(input$add_food, {
                         borderRadius = "5px")
   })
 
-  # Improved nutrition chart with actual macronutrients
+  # nutrition chart with macronutrients
   output$nutrition_chart <- renderPlotly({
     req(nrow(meal_data()) > 0)
     
@@ -2389,7 +2383,7 @@ observeEvent(input$add_food, {
       )
   })
 
-  # Enhanced nutrition recommendations with comprehensive analysis
+  # nutrition recommendations 
   output$nutrition_recommendations <- renderUI({
     req(nrow(meal_data()) > 0)
     
@@ -2477,7 +2471,7 @@ observeEvent(input$add_food, {
       recommendations <- c(recommendations, "Your meal has a high glycemic load (> 20), which may cause significant blood sugar spikes. Consider reducing portions of high-carb foods or adding more fiber and protein.")
     }
     
-    # Create the HTML list with better formatting
+    # HTML list 
     div(
       class = "nutrition-recommendations",
       tags$ul(
